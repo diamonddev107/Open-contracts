@@ -6,20 +6,9 @@ import "../util/Pausable.sol";
 
 import "hardhat/console.sol";
 
-
 contract Loan is Pausable, ILoan {
-    event AddCollateral(
-        address indexed account,
-        uint256 indexed id,
-        uint256 amount,
-        uint256 timestamp
-    );
-    event WithdrawPartialLoan(
-        address indexed account,
-        uint256 indexed id,
-        uint256 indexed amount,
-        uint256 timestamp
-    );
+    event AddCollateral(address indexed account, uint256 indexed id, uint256 amount, uint256 timestamp);
+    event WithdrawPartialLoan(address indexed account, uint256 indexed id, uint256 indexed amount, uint256 timestamp);
     event WithdrawCollateral(
         address indexed account,
         bytes32 indexed market,
@@ -27,7 +16,15 @@ contract Loan is Pausable, ILoan {
         uint256 id,
         uint256 timestamp
     );
-    event MarketSwapped(address indexed account,bytes32 loanMarket,bytes32 commmitment,bool isSwapped,bytes32 indexed currentMarket,uint256 indexed currentAmount,uint256 timestamp);
+    event MarketSwapped(
+        address indexed account,
+        bytes32 loanMarket,
+        bytes32 commmitment,
+        bool isSwapped,
+        bytes32 indexed currentMarket,
+        uint256 indexed currentAmount,
+        uint256 timestamp
+    );
 
     constructor() {
         // AppStorage storage ds = LibOpen.diamondStorage();
@@ -49,15 +46,22 @@ contract Loan is Pausable, ILoan {
         bytes32 _commitment,
         bytes32 _swapMarket
     ) external override nonReentrant returns (bool) {
-        
         AppStorageOpen storage ds = LibOpen.diamondStorage();
-        
+
         LoanRecords storage loan = ds.indLoanRecords[msg.sender][_loanMarket][_commitment];
         LoanState storage loanState = ds.indLoanState[msg.sender][_loanMarket][_commitment];
-        
+
         LibOpen._swapLoan(msg.sender, _loanMarket, _commitment, _swapMarket);
-        
-        emit MarketSwapped(msg.sender, loanState.loanMarket, _commitment, loan.isSwapped, loanState.currentMarket, loanState.currentAmount, block.timestamp);
+
+        emit MarketSwapped(
+            msg.sender,
+            loanState.loanMarket,
+            _commitment,
+            loan.isSwapped,
+            loanState.currentMarket,
+            loanState.currentAmount,
+            block.timestamp
+        );
         return true;
     }
 
@@ -69,21 +73,24 @@ contract Loan is Pausable, ILoan {
         returns (bool success)
     {
         LibOpen._swapToLoan(msg.sender, _loanMarket, _commitment);
-        
+
         AppStorageOpen storage ds = LibOpen.diamondStorage();
         LoanRecords storage loan = ds.indLoanRecords[msg.sender][_loanMarket][_commitment];
         LoanState storage loanState = ds.indLoanState[msg.sender][_loanMarket][_commitment];
-        
-        emit MarketSwapped(msg.sender, loanState.loanMarket, _commitment, loan.isSwapped, loanState.currentMarket, loanState.currentAmount, block.timestamp);
+
+        emit MarketSwapped(
+            msg.sender,
+            loanState.loanMarket,
+            _commitment,
+            loan.isSwapped,
+            loanState.currentMarket,
+            loanState.currentAmount,
+            block.timestamp
+        );
         return success = true;
     }
 
-    function withdrawCollateral(bytes32 _market, bytes32 _commitment)
-        external
-        override
-        nonReentrant
-        returns (bool)
-    {
+    function withdrawCollateral(bytes32 _market, bytes32 _commitment) external override nonReentrant returns (bool) {
         LibOpen._withdrawCollateral(msg.sender, _market, _commitment);
         return true;
     }
@@ -97,10 +104,7 @@ contract Loan is Pausable, ILoan {
     ) private view {
         require(loan.id != 0, "ERROR: No loan");
         require(loanState.state == STATE.ACTIVE, "ERROR: Inactive loan");
-        require(
-            collateral.market == _collateralMarket,
-            "ERROR: Mismatch collateral market"
-        );
+        require(collateral.market == _collateralMarket, "ERROR: Mismatch collateral market");
 
         LibOpen._isMarketSupported(_collateralMarket);
         // LibOpen._minAmountCheck(_collateralMarket, _collateralAmount);
@@ -119,22 +123,12 @@ contract Loan is Pausable, ILoan {
         CollateralYield storage cYield = ds.indAccruedAPY[msg.sender][_loanMarket][_commitment];
         ActiveLoans storage activeLoans = ds.getActiveLoans[msg.sender];
 
-        _preAddCollateralProcess(
-            collateral.market,
-            _collateralAmount,
-            loan,
-            loanState,
-            collateral
-        );
+        _preAddCollateralProcess(collateral.market, _collateralAmount, loan, loanState, collateral);
 
         ds.collateralToken = IBEP20(LibOpen._connectMarket(collateral.market));
 
         /// TRIGGER: ds.collateralToken.approve() on the client.
-        ds.collateralToken.transferFrom(
-            msg.sender,
-            address(this),
-            _collateralAmount
-        );
+        ds.collateralToken.transferFrom(msg.sender, address(this), _collateralAmount);
         LibOpen._updateReservesLoan(collateral.market, _collateralAmount, 0);
 
         /// UPDATE COLLATERAL IN STORAGE
@@ -143,15 +137,9 @@ contract Loan is Pausable, ILoan {
         activeLoans.collateralAmount[loan.id - 1] += _collateralAmount; // updating activeLoans
 
         LibOpen._accruedInterest(msg.sender, _loanMarket, _commitment);
-        if (collateral.isCollateralisedDeposit)
-            LibOpen._accruedYieldCollateral(loanAccount, collateral, cYield);
+        if (collateral.isCollateralisedDeposit) LibOpen._accruedYieldCollateral(loanAccount, collateral, cYield);
 
-        emit AddCollateral(
-            msg.sender,
-            loan.id,
-            _collateralAmount,
-            block.timestamp
-        );
+        emit AddCollateral(msg.sender, loan.id, _collateralAmount, block.timestamp);
         return true;
     }
 
@@ -168,20 +156,12 @@ contract Loan is Pausable, ILoan {
         LoanState storage loanState = ds.indLoanState[msg.sender][_loanMarket][_commitment];
         CollateralRecords storage collateral = ds.indCollateralRecords[msg.sender][_loanMarket][_commitment];
         CollateralYield storage cYield = ds.indAccruedAPY[msg.sender][_loanMarket][_commitment];
-		ActiveLoans storage activeLoans = ds.getActiveLoans[msg.sender];
+        ActiveLoans storage activeLoans = ds.getActiveLoans[msg.sender];
 
-        LibOpen._checkPermissibleWithdrawal(
-            msg.sender,
-            _amount,
-            loanAccount,
-            loan,
-            loanState,
-            collateral,
-            cYield
-        );
+        LibOpen._checkPermissibleWithdrawal(msg.sender, _amount, loanAccount, loan, loanState, collateral, cYield);
 
-		loanState.currentAmount -= _amount;
-		activeLoans.loanCurrentAmount[loan.id - 1] -= _amount;
+        loanState.currentAmount -= _amount;
+        activeLoans.loanCurrentAmount[loan.id - 1] -= _amount;
 
         ds.loanToken = IBEP20(LibOpen._connectMarket(loan.market));
         ds.loanToken.transfer(msg.sender, _amount);
@@ -191,31 +171,34 @@ contract Loan is Pausable, ILoan {
         return true;
     }
 
-    function getLoanInterest(address account, uint256 id) external view returns(uint256 loanInterest, uint collateralInterest)	{
-		AppStorageOpen storage ds = LibOpen.diamondStorage(); 
-		uint256 num = id -1;
-		
-        ActiveLoans storage activeLoans = ds.getActiveLoans[msg.sender];
-		
-		bytes32 market = activeLoans.loanMarket[num];
-		bytes32 commitment = activeLoans.loanCommitment[num];
-		uint256 interestFactor = 0;
+    function getLoanInterest(address account, uint256 id)
+        external
+        view
+        returns (uint256 loanInterest, uint256 collateralInterest)
+    {
+        AppStorageOpen storage ds = LibOpen.diamondStorage();
+        uint256 num = id - 1;
 
-		LoanRecords storage loan = ds.indLoanRecords[account][market][commitment];
-		YieldLedger storage yield = ds.indYieldRecord[account][market][commitment];
+        ActiveLoans storage activeLoans = ds.getActiveLoans[msg.sender];
+
+        bytes32 market = activeLoans.loanMarket[num];
+        bytes32 commitment = activeLoans.loanCommitment[num];
+        uint256 interestFactor = 0;
+
+        LoanRecords storage loan = ds.indLoanRecords[account][market][commitment];
+        YieldLedger storage yield = ds.indYieldRecord[account][market][commitment];
         CollateralRecords storage collateral = ds.indCollateralRecords[msg.sender][market][commitment];
         CollateralYield storage cYield = ds.indAccruedAPY[msg.sender][market][commitment];
-        
-		interestFactor = LibOpen._getLoanInterest(commitment, yield.oldLengthAccruedYield, yield.oldTime);
 
-		loanInterest = yield.accruedYield;
-		loanInterest += ((interestFactor*loan.amount)/(365*86400*10000));	
+        interestFactor = LibOpen._getLoanInterest(commitment, yield.oldLengthAccruedYield, yield.oldTime);
+
+        loanInterest = yield.accruedYield;
+        loanInterest += ((interestFactor * loan.amount) / (365 * 86400 * 10000));
         collateralInterest = cYield.accruedYield;
-        collateralInterest += ((interestFactor*collateral.amount)/(365*86400*10000));
+        collateralInterest += ((interestFactor * collateral.amount) / (365 * 86400 * 10000));
 
-		return (loanInterest, collateralInterest);
-
-	}
+        return (loanInterest, collateralInterest);
+    }
 
     function pauseLoan() external override authLoan nonReentrant {
         _pause();
@@ -232,14 +215,8 @@ contract Loan is Pausable, ILoan {
     modifier authLoan() {
         AppStorageOpen storage ds = LibOpen.diamondStorage();
         require(
-            IAccessRegistry(ds.superAdminAddress).hasAdminRole(
-                ds.superAdmin,
-                msg.sender
-            ) ||
-                IAccessRegistry(ds.superAdminAddress).hasAdminRole(
-                    ds.adminLoan,
-                    msg.sender
-                ),
+            IAccessRegistry(ds.superAdminAddress).hasAdminRole(ds.superAdmin, msg.sender) ||
+                IAccessRegistry(ds.superAdminAddress).hasAdminRole(ds.adminLoan, msg.sender),
             "ERROR: Not an admin"
         );
         _;

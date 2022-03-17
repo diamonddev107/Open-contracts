@@ -4,7 +4,7 @@ const { ethers } = require("hardhat");
 const utils = require("ethers").utils;
 const { getSelectors, FacetCutAction } = require("./libraries/diamond.js");
 const { mkdirSync, existsSync, readFileSync, writeFileSync } = require("fs");
-const fs = require('fs');
+const fs = require("fs");
 
 async function main() {
   const diamondAddress = await deployDiamond();
@@ -22,13 +22,13 @@ async function deployDiamond() {
 
   const superAdmin = 0x72b5b8ca10202b2492d7537bf1f6abcda23a980f7acf51a1ec8a0ce96c7d7ca8;
   console.log(`upgradeAdmin ${upgradeAdmin.address}`);
-//   fs.writeFile('/Users/tripp/Desktop/Hashstack/Newer/Open-contracts/env.js',upgradeAdmin.address, function(err) {
-//     if(err) {
-//         return console.log(err);
-//     }
+  //   fs.writeFile('/Users/tripp/Desktop/Hashstack/Newer/Open-contracts/env.js',upgradeAdmin.address, function(err) {
+  //     if(err) {
+  //         return console.log(err);
+  //     }
 
-//     console.log("The file was saved!");
-// }); ;
+  //     console.log("The file was saved!");
+  // }); ;
 
   /// DEPLOY DiamondCutFacet
   const DiamondCutFacet = await ethers.getContractFactory("DiamondCutFacet");
@@ -110,10 +110,7 @@ async function deployDiamond() {
 
   ///DEPLOY DIAMOND
   const Diamond = await ethers.getContractFactory("OpenDiamond");
-  const diamond = await Diamond.deploy(
-    upgradeAdmin.address,
-    diamondCutFacet.address
-  );
+  const diamond = await Diamond.deploy(upgradeAdmin.address, diamondCutFacet.address);
   await diamond.deployed();
   createAbiJSON(diamond, "OpenDiamond");
   console.log("Diamond deployed:", diamond.address);
@@ -143,18 +140,10 @@ async function deployDiamond() {
   console.log("Completed diamond cut");
   console.log("Begin diamondcut facets");
 
-  diamondCutFacet = await ethers.getContractAt(
-    "DiamondCutFacet",
-    diamond.address
-  );
+  diamondCutFacet = await ethers.getContractAt("DiamondCutFacet", diamond.address);
   createAbiJSON(diamondCutFacet, "DiamondCutFacet");
 
-  tx = await diamondCutFacet.diamondCut(
-    opencut,
-    ethers.constants.AddressZero,
-    "0x",
-    { gasLimit: 8000000 }
-  );
+  tx = await diamondCutFacet.diamondCut(opencut, ethers.constants.AddressZero, "0x", { gasLimit: 8000000 });
   receipt = await tx.wait();
 
   if (!receipt.status) {
@@ -175,55 +164,27 @@ async function addMarkets(diamondAddress) {
   createAbiJSON(diamond, "OpenDiamond");
 
   /// BYTES32 MARKET SYMBOL BYTES32
-  const symbolWBNB =
-    "0x57424e4200000000000000000000000000000000000000000000000000000000"; // WBNB
-  const symbolUsdt =
-    "0x555344542e740000000000000000000000000000000000000000000000000000"; // USDT.t
-  const symbolUsdc =
-    "0x555344432e740000000000000000000000000000000000000000000000000000"; // USDC.t
-  const symbolBtc =
-    "0x4254432e74000000000000000000000000000000000000000000000000000000"; // BTC.t
-  const symbolSxp =
-    "0x5358500000000000000000000000000000000000000000000000000000000000"; // SXP
-  const symbolCAKE =
-    "0x43414b4500000000000000000000000000000000000000000000000000000000"; // CAKE
+  const symbolWBNB = "0x57424e4200000000000000000000000000000000000000000000000000000000"; // WBNB
+  const symbolUsdt = "0x555344542e740000000000000000000000000000000000000000000000000000"; // USDT.t
+  const symbolUsdc = "0x555344432e740000000000000000000000000000000000000000000000000000"; // USDC.t
+  const symbolBtc = "0x4254432e74000000000000000000000000000000000000000000000000000000"; // BTC.t
+  const symbolSxp = "0x5358500000000000000000000000000000000000000000000000000000000000"; // SXP
+  const symbolCAKE = "0x43414b4500000000000000000000000000000000000000000000000000000000"; // CAKE
 
   /// BYTES32 COMMINTMENT PERIOD
-  const comit_NONE =
-    "0x636f6d69745f4e4f4e4500000000000000000000000000000000000000000000";
-  const comit_TWOWEEKS =
-    "0x636f6d69745f54574f5745454b53000000000000000000000000000000000000";
-  const comit_ONEMONTH =
-    "0x636f6d69745f4f4e454d4f4e5448000000000000000000000000000000000000";
-  const comit_THREEMONTHS =
-    "0x636f6d69745f54485245454d4f4e544853000000000000000000000000000000";
+  const comit_NONE = "0x636f6d69745f4e4f4e4500000000000000000000000000000000000000000000";
+  const comit_TWOWEEKS = "0x636f6d69745f54574f5745454b53000000000000000000000000000000000000";
+  const comit_ONEMONTH = "0x636f6d69745f4f4e454d4f4e5448000000000000000000000000000000000000";
+  const comit_THREEMONTHS = "0x636f6d69745f54485245454d4f4e544853000000000000000000000000000000";
 
   /// CHAINLINK ORACLE ADDRESSES ADDED
   console.log("Add fairPrice addresses");
-  await diamond.addFairPriceAddress(
-    symbolWBNB,
-    "0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526"
-  );
-  await diamond.addFairPriceAddress(
-    symbolUsdt,
-    "0xEca2605f0BCF2BA5966372C99837b1F182d3D620"
-  );
-  await diamond.addFairPriceAddress(
-    symbolUsdc,
-    "0x90c069C4538adAc136E051052E14c1cD799C41B7"
-  );
-  await diamond.addFairPriceAddress(
-    symbolBtc,
-    "0x5741306c21795FdCBb9b265Ea0255F499DFe515C"
-  );
-  await diamond.addFairPriceAddress(
-    symbolSxp,
-    "0x678AC35ACbcE272651874E782DB5343F9B8a7D66"
-  );
-  await diamond.addFairPriceAddress(
-    symbolCAKE,
-    "0x81faeDDfeBc2F8Ac524327d70Cf913001732224C"
-  );
+  await diamond.addFairPriceAddress(symbolWBNB, "0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526");
+  await diamond.addFairPriceAddress(symbolUsdt, "0xEca2605f0BCF2BA5966372C99837b1F182d3D620");
+  await diamond.addFairPriceAddress(symbolUsdc, "0x90c069C4538adAc136E051052E14c1cD799C41B7");
+  await diamond.addFairPriceAddress(symbolBtc, "0x5741306c21795FdCBb9b265Ea0255F499DFe515C");
+  await diamond.addFairPriceAddress(symbolSxp, "0x678AC35ACbcE272651874E782DB5343F9B8a7D66");
+  await diamond.addFairPriceAddress(symbolCAKE, "0x81faeDDfeBc2F8Ac524327d70Cf913001732224C");
 
   /// SET COMMITMENT PERIOD
   console.log("setCommitment begin");
@@ -249,8 +210,7 @@ async function addMarkets(diamondAddress) {
   await comptroller.connect(upgradeAdmin).updateAPR(comit_THREEMONTHS, 1500);
   console.log("updateAPR complete");
 
-
-/// DEPLOYING TEST TOKENS
+  /// DEPLOYING TEST TOKENS
   console.log("Deploy test tokens");
   const admin_ = upgradeAdmin.address;
   const Mockup = await ethers.getContractFactory("BEP20Token");
@@ -326,45 +286,33 @@ async function addMarkets(diamondAddress) {
   const minBNB = BigNumber.from("25000000"); // 0.25
 
   // 100 USDT [minAmount]
-  await tokenList
-    .connect(upgradeAdmin)
-    .addMarketSupport(symbolUsdt, 8, tUsdtAddress, minUSDT, {
-      gasLimit: 800000,
-    });
+  await tokenList.connect(upgradeAdmin).addMarketSupport(symbolUsdt, 8, tUsdtAddress, minUSDT, {
+    gasLimit: 800000,
+  });
   console.log(`tUSDT added ${minUSDT}`);
 
   // 100 USDC [minAmount]
-  await tokenList
-    .connect(upgradeAdmin)
-    .addMarketSupport(symbolUsdc, 8, tUsdcAddress, minUSDC, {
-      gasLimit: 800000,
-    });
+  await tokenList.connect(upgradeAdmin).addMarketSupport(symbolUsdc, 8, tUsdcAddress, minUSDC, {
+    gasLimit: 800000,
+  });
   console.log(`tUSDC added ${minUSDC}`);
 
   // 0.1 BTC [minAmount]
-  await tokenList
-    .connect(upgradeAdmin)
-    .addMarketSupport(symbolBtc, 8, tBtcAddress, minBTC, { gasLimit: 800000 });
+  await tokenList.connect(upgradeAdmin).addMarketSupport(symbolBtc, 8, tBtcAddress, minBTC, { gasLimit: 800000 });
   console.log(`tBTC added ${minBTC}`);
 
   // 0.25 BNB [minAmount]
-  await tokenList
-    .connect(upgradeAdmin)
-    .addMarketSupport(symbolWBNB, 8, tWBNBAddress, minBNB, {
-      gasLimit: 800000,
-    });
+  await tokenList.connect(upgradeAdmin).addMarketSupport(symbolWBNB, 8, tWBNBAddress, minBNB, {
+    gasLimit: 800000,
+  });
   console.log(`twBNB added ${minBNB}`);
 
   console.log("primary markets added");
 
   /// ADD SECONDARY MARKETS
   console.log("adding secondary markets");
-  await tokenList
-    .connect(upgradeAdmin)
-    .addMarket2Support(symbolSxp, 8, tSxpAddress, { gasLimit: 800000 });
-  await tokenList
-    .connect(upgradeAdmin)
-    .addMarket2Support(symbolCAKE, 8, tCakeAddress, { gasLimit: 800000 });
+  await tokenList.connect(upgradeAdmin).addMarket2Support(symbolSxp, 8, tSxpAddress, { gasLimit: 800000 });
+  await tokenList.connect(upgradeAdmin).addMarket2Support(symbolCAKE, 8, tCakeAddress, { gasLimit: 800000 });
 
   console.log(`Secondary markets
         SXP: ${symbolSxp}: ${tSxpAddress}
@@ -392,17 +340,11 @@ async function addMarkets(diamondAddress) {
 
   /// TRANSFERRING TOKENS TO FAUCET
   await tusdt.transfer(faucet.address, "600000000000000000"); // 6 billion USDT
-  console.log(
-    "6000000000 tusdt transfered to faucet. Token being :",
-    tUsdtAddress
-  );
+  console.log("6000000000 tusdt transfered to faucet. Token being :", tUsdtAddress);
   console.log(await tusdt.balanceOf(faucet.address));
 
   await tusdc.transfer(faucet.address, "600000000000000000"); // 6 billion USDC
-  console.log(
-    "6000000000 tusdc transfered to faucet. Token being :",
-    tUsdcAddress
-  );
+  console.log("6000000000 tusdc transfered to faucet. Token being :", tUsdcAddress);
   console.log(await tusdc.balanceOf(faucet.address));
 
   await tbtc.transfer(faucet.address, "1260000000000000");
@@ -410,59 +352,78 @@ async function addMarkets(diamondAddress) {
   console.log(await tbtc.balanceOf(faucet.address));
 
   await twbnb.transfer(faucet.address, "5400000000000000"); // 54 million BNB
-  console.log(
-    "54000000 twbnb transfered to faucet. Token being :",
-    tWBNBAddress
-  );
+  console.log("54000000 twbnb transfered to faucet. Token being :", tWBNBAddress);
   console.log(await twbnb.balanceOf(faucet.address));
 
   /// UPADTING FAUCET BALANCE & FUNDS_LEAK
   await faucet.connect(upgradeAdmin)._updateTokens(
     tUsdtAddress,
     "600000000000000000", // 6 billion USDT
-    "1000000000000" // 10000 USDT
+    "1000000000000", // 10000 USDT
   );
   await faucet.connect(upgradeAdmin)._updateTokens(
     tUsdcAddress,
     "600000000000000000", // 6 billion USDC
-    "1000000000000" // 10000 USDC
+    "1000000000000", // 10000 USDC
   );
   await faucet.connect(upgradeAdmin)._updateTokens(
     tBtcAddress,
     "1260000000000000", // 12.6 million BTC
-    "500000000" // 5 BTC
+    "500000000", // 5 BTC
   );
   await faucet.connect(upgradeAdmin)._updateTokens(
     tWBNBAddress,
     "5400000000000000", // 54 million BNB
-    "10000000000" // 100 BNB
+    "10000000000", // 100 BNB
   );
 
-  console.log('ALL ENV USED IN UI');
+  console.log("ALL ENV USED IN UI");
 
   console.log("REACT_APP_DIAMOND_ADDRESS = ", diamond.address);
-  
+
   console.log("REACT_APP_FAUCET_ADDRESS = ", faucet.address);
-  
+
   console.log("REACT_APP_T_BTC_ADDRESS = ", tBtcAddress);
-  
+
   console.log("REACT_APP_T_USDC_ADDRESS = ", tUsdcAddress);
-  
+
   console.log("REACT_APP_T_USDT_ADDRESS = ", tUsdtAddress);
- 
+
   console.log("REACT_APP_T_SXP_ADDRESS = ", tSxpAddress);
 
   console.log("REACT_APP_T_CAKE_ADDRESS = ", tCakeAddress);
-  
+
   console.log("REACT_APP_T_WBNB_ADDRESS = ", tWBNBAddress);
-  fs.writeFile('addr.js',("REACT_APP_DIAMOND_ADDRESS = "+ diamond.address+ '\r\n'+ "REACT_APP_FAUCET_ADDRESS = "+ faucet.address+ '\r\n'+ "REACT_APP_T_USDC_ADDRESS = "+ tUsdcAddress+ '\r\n'+ "REACT_APP_T_USDT_ADDRESS = "+ tUsdtAddress+ '\r\n'+ "REACT_APP_T_SXP_ADDRESS = "+ tSxpAddress+ '\r\n'+ "REACT_APP_T_CAKE_ADDRESS = "+ tCakeAddress+ '\r\n'+ "REACT_APP_T_WBNB_ADDRESS = "+tWBNBAddress), function(err) {
-    if(err) {
+  fs.writeFile(
+    "addr.js",
+    "REACT_APP_DIAMOND_ADDRESS = " +
+      diamond.address +
+      "\r\n" +
+      "REACT_APP_FAUCET_ADDRESS = " +
+      faucet.address +
+      "\r\n" +
+      "REACT_APP_T_USDC_ADDRESS = " +
+      tUsdcAddress +
+      "\r\n" +
+      "REACT_APP_T_USDT_ADDRESS = " +
+      tUsdtAddress +
+      "\r\n" +
+      "REACT_APP_T_SXP_ADDRESS = " +
+      tSxpAddress +
+      "\r\n" +
+      "REACT_APP_T_CAKE_ADDRESS = " +
+      tCakeAddress +
+      "\r\n" +
+      "REACT_APP_T_WBNB_ADDRESS = " +
+      tWBNBAddress,
+    function (err) {
+      if (err) {
         return console.log(err);
-    }
+      }
 
-    console.log("The addresses are saved!");
-}); ;
-
+      console.log("The addresses are saved!");
+    },
+  );
 
   return {
     tBtcAddress,
@@ -487,10 +448,7 @@ async function provideLiquidity(rets) {
   const tcake = await ethers.getContractAt("BEP20Token", rets["tCakeAddress"]);
   const tsxp = await ethers.getContractAt("BEP20Token", rets["tSxpAddress"]);
 
-  const pancakeRouter = await ethers.getContractAt(
-    "PancakeRouter",
-    pancakeRouterAddr
-  );
+  const pancakeRouter = await ethers.getContractAt("PancakeRouter", pancakeRouterAddr);
   // const pancakeFactory = await ethers.getContractAt('PancakeFactory', await pancakeRouter.factory());
 
   /// USDC-CAKE LIQUIDITY
@@ -506,7 +464,7 @@ async function provideLiquidity(rets) {
     1,
     upgradeAdmin.address,
     Date.now() + 60 * 30,
-    { gasLimit: 8000000 }
+    { gasLimit: 8000000 },
   );
 
   console.log("USDC <-> CAKE LP done");
@@ -524,7 +482,7 @@ async function provideLiquidity(rets) {
     1,
     upgradeAdmin.address,
     Date.now() + 60 * 30,
-    { gasLimit: 8000000 }
+    { gasLimit: 8000000 },
   );
   console.log("USDT <-> CAKE LP done");
 
@@ -543,14 +501,14 @@ async function provideLiquidity(rets) {
       1,
       upgradeAdmin.address,
       Date.now() + 60 * 30,
-      { gasLimit: 8000000 }
+      { gasLimit: 8000000 },
     );
   console.log("BTC <-> CAKE LP done");
 
   /// WBNB-CAKE LIQUIDITY
   await twbnb.approve(pancakeRouterAddr, "5000000000");
   await tcake.approve(pancakeRouterAddr, "250000000000");
-  
+
   await pancakeRouter
     .connect(upgradeAdmin)
     .addLiquidity(
@@ -562,11 +520,11 @@ async function provideLiquidity(rets) {
       1,
       upgradeAdmin.address,
       Date.now() + 60 * 30,
-      { gasLimit: 8000000 }
+      { gasLimit: 8000000 },
     );
   console.log("WBNB <-> CAKE LP done");
 
- // LP FOR SXP
+  // LP FOR SXP
 
   /// USDC-SXP LIQUIDITY
   await tusdc.approve(pancakeRouterAddr, "10000000000000000");
@@ -581,7 +539,7 @@ async function provideLiquidity(rets) {
     1,
     upgradeAdmin.address,
     Date.now() + 60 * 30,
-    { gasLimit: 8000000 }
+    { gasLimit: 8000000 },
   );
 
   console.log("USDC <-> SXP LP done");
@@ -599,7 +557,7 @@ async function provideLiquidity(rets) {
     1,
     upgradeAdmin.address,
     Date.now() + 60 * 30,
-    { gasLimit: 8000000 }
+    { gasLimit: 8000000 },
   );
   console.log("USDT <-> SXP LP done");
 
@@ -618,14 +576,14 @@ async function provideLiquidity(rets) {
       1,
       upgradeAdmin.address,
       Date.now() + 60 * 30,
-      { gasLimit: 8000000 }
+      { gasLimit: 8000000 },
     );
   console.log("BTC <-> SXP LP done");
 
   /// WBNB-SXP LIQUIDITY
   await twbnb.approve(pancakeRouterAddr, "5000000000");
   await tsxp.approve(pancakeRouterAddr, "250000000000");
-  
+
   await pancakeRouter
     .connect(upgradeAdmin)
     .addLiquidity(
@@ -637,7 +595,7 @@ async function provideLiquidity(rets) {
       1,
       upgradeAdmin.address,
       Date.now() + 60 * 30,
-      { gasLimit: 8000000 }
+      { gasLimit: 8000000 },
     );
   console.log("WBNB <-> SXP LP done");
 }
@@ -645,7 +603,7 @@ async function provideLiquidity(rets) {
 if (require.main === module) {
   main()
     .then(() => process.exit(0))
-    .catch((error) => {
+    .catch(error => {
       console.error(error);
       process.exit(1);
     });
@@ -657,8 +615,8 @@ exports.addMarkets = addMarkets;
 exports.provideLiquidity = provideLiquidity;
 
 /// CREATE ABI OF CONTRACTS
-function createAbiJSON(artifact, filename){
-  const data = JSON.parse(artifact.interface.format("json"))
-  writeFileSync(`${__dirname}/../abi/backend/${filename}.json`,JSON.stringify(data));
-  writeFileSync(`${__dirname}/../abi/frontend/${filename}.json`,JSON.stringify(data));
+function createAbiJSON(artifact, filename) {
+  const data = JSON.parse(artifact.interface.format("json"));
+  writeFileSync(`${__dirname}/../abi/backend/${filename}.json`, JSON.stringify(data));
+  writeFileSync(`${__dirname}/../abi/frontend/${filename}.json`, JSON.stringify(data));
 }

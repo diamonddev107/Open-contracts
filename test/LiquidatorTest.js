@@ -36,20 +36,13 @@ describe("===== Swapping Loans =====", function () {
   let rets;
   const addresses = [];
 
-  const symbolWBNB =
-    "0x57424e4200000000000000000000000000000000000000000000000000000000"; // WBNB
-  const symbolUsdt =
-    "0x555344542e740000000000000000000000000000000000000000000000000000"; // USDT.t
-  const symbolUsdc =
-    "0x555344432e740000000000000000000000000000000000000000000000000000"; // USDC.t
-  const symbolBtc =
-    "0x4254432e74000000000000000000000000000000000000000000000000000000"; // BTC.t
-  const symbolEth =
-    "0x4554480000000000000000000000000000000000000000000000000000000000";
-  const symbolSxp =
-    "0x5358500000000000000000000000000000000000000000000000000000000000"; // SXP
-  const symbolCAKE =
-    "0x43414b4500000000000000000000000000000000000000000000000000000000"; // CAKE
+  const symbolWBNB = "0x57424e4200000000000000000000000000000000000000000000000000000000"; // WBNB
+  const symbolUsdt = "0x555344542e740000000000000000000000000000000000000000000000000000"; // USDT.t
+  const symbolUsdc = "0x555344432e740000000000000000000000000000000000000000000000000000"; // USDC.t
+  const symbolBtc = "0x4254432e74000000000000000000000000000000000000000000000000000000"; // BTC.t
+  const symbolEth = "0x4554480000000000000000000000000000000000000000000000000000000000";
+  const symbolSxp = "0x5358500000000000000000000000000000000000000000000000000000000000"; // SXP
+  const symbolCAKE = "0x43414b4500000000000000000000000000000000000000000000000000000000"; // CAKE
 
   const comit_NONE = utils.formatBytes32String("comit_NONE");
   const comit_TWOWEEKS = utils.formatBytes32String("comit_TWOWEEKS");
@@ -64,14 +57,8 @@ describe("===== Swapping Loans =====", function () {
     diamondAddress = "0x7990799fF4B81419FfA53f80f2CD499CE8cCae8e";
     // rets = await addMarkets(diamondAddress);
 
-    diamondCutFacet = await ethers.getContractAt(
-      "DiamondCutFacet",
-      diamondAddress
-    );
-    diamondLoupeFacet = await ethers.getContractAt(
-      "DiamondLoupeFacet",
-      diamondAddress
-    );
+    diamondCutFacet = await ethers.getContractAt("DiamondCutFacet", diamondAddress);
+    diamondLoupeFacet = await ethers.getContractAt("DiamondLoupeFacet", diamondAddress);
     library = await ethers.getContractAt("LibOpen", diamondAddress);
 
     tokenList = await ethers.getContractAt("TokenList", diamondAddress);
@@ -83,18 +70,9 @@ describe("===== Swapping Loans =====", function () {
     liquidator = await ethers.getContractAt("Liquidator", diamondAddress);
     reserve = await ethers.getContractAt("Reserve", diamondAddress);
 
-    bepUsdt = await ethers.getContractAt(
-      "MockBep20",
-      "0x6c88abe4503357c17C93fC0c3466Be55CDF74690"
-    );
-    bepBtc = await ethers.getContractAt(
-      "MockBep20",
-      "0x11f7F1fB8AE3866A7233ac99a72893068076b7AD"
-    );
-    bepUsdc = await ethers.getContractAt(
-      "MockBep20",
-      "0xa5831850c821eF991163F220588DDda99407DA1b"
-    );
+    bepUsdt = await ethers.getContractAt("MockBep20", "0x6c88abe4503357c17C93fC0c3466Be55CDF74690");
+    bepBtc = await ethers.getContractAt("MockBep20", "0x11f7F1fB8AE3866A7233ac99a72893068076b7AD");
+    bepUsdc = await ethers.getContractAt("MockBep20", "0xa5831850c821eF991163F220588DDda99407DA1b");
   }) /**.timeout(2000000)*/;
 
   it("should have three facets -- call to facetAddresses function", async () => {
@@ -115,22 +93,10 @@ describe("===== Swapping Loans =====", function () {
 
   it("Token Mint", async () => {
     // expect(await bepUsdt.balanceOf(deposit.address)).to.be.equal(0);
-    await expect(bepUsdt.transfer(contractOwner.address, 0x10000)).to.emit(
-      bepUsdt,
-      "Transfer"
-    );
-    await expect(bepUsdt.transfer(accounts[1].address, 0x10000)).to.emit(
-      bepUsdt,
-      "Transfer"
-    );
-    await expect(bepUsdc.transfer(accounts[1].address, 0x10000)).to.emit(
-      bepUsdc,
-      "Transfer"
-    );
-    await expect(bepBtc.transfer(accounts[1].address, 0x10000)).to.emit(
-      bepBtc,
-      "Transfer"
-    );
+    await expect(bepUsdt.transfer(contractOwner.address, 0x10000)).to.emit(bepUsdt, "Transfer");
+    await expect(bepUsdt.transfer(accounts[1].address, 0x10000)).to.emit(bepUsdt, "Transfer");
+    await expect(bepUsdc.transfer(accounts[1].address, 0x10000)).to.emit(bepUsdc, "Transfer");
+    await expect(bepBtc.transfer(accounts[1].address, 0x10000)).to.emit(bepBtc, "Transfer");
   });
 
   it("SwapLoan", async () => {
@@ -139,17 +105,12 @@ describe("===== Swapping Loans =====", function () {
     // USDT
 
     await bepUsdt.connect(accounts[1]).approve(diamondAddress, depositAmount);
-    console.log(
-      "Approve before deposit is ",
-      await bepUsdt.allowance(accounts[1].address, diamondAddress)
-    );
+    console.log("Approve before deposit is ", await bepUsdt.allowance(accounts[1].address, diamondAddress));
 
     await expect(
-      deposit
-        .connect(accounts[1])
-        .addToDeposit(symbolUsdt, comit_NONE, depositAmount, {
-          gasLimit: 5000000,
-        })
+      deposit.connect(accounts[1]).addToDeposit(symbolUsdt, comit_NONE, depositAmount, {
+        gasLimit: 5000000,
+      }),
     ).emit(deposit, "NewDeposit");
     expect(await bepUsdt.balanceOf(accounts[1].address)).to.equal(0xfe00);
     expect(await reserve.avblMarketReserves(symbolUsdt)).to.equal(0x200);
@@ -157,40 +118,32 @@ describe("===== Swapping Loans =====", function () {
 
     await bepUsdt.connect(accounts[1]).approve(diamondAddress, depositAmount);
     await expect(
-      deposit
-        .connect(accounts[1])
-        .addToDeposit(symbolUsdt, comit_NONE, depositAmount, {
-          gasLimit: 5000000,
-        })
+      deposit.connect(accounts[1]).addToDeposit(symbolUsdt, comit_NONE, depositAmount, {
+        gasLimit: 5000000,
+      }),
     ).emit(deposit, "DepositAdded");
     expect(await bepUsdt.balanceOf(accounts[1].address)).to.equal(0xfc00);
     expect(await reserve.avblMarketReserves(symbolUsdt)).to.equal(0x400);
 
     await expect(
-      loan1
-        .connect(accounts[1])
-        .loanRequest(symbolUsdt, comit_ONEMONTH, 0x200, symbolUsdt, 0x500, {
-          gasLimit: 5000000,
-        })
+      loan1.connect(accounts[1]).loanRequest(symbolUsdt, comit_ONEMONTH, 0x200, symbolUsdt, 0x500, {
+        gasLimit: 5000000,
+      }),
     ).to.emit(loan1, "NewLoan");
 
     expect(await bepUsdt.balanceOf(accounts[1].address)).to.equal(0xfc00);
     expect(await reserve.avblMarketReserves(symbolUsdt)).to.equal(0x200);
     try {
       await expect(
-        loan
-          .connect(accounts[1])
-          .swapLoan(symbolUsdt, comit_ONEMONTH, symbolSxp, {
-            gasLimit: 5000000,
-          })
+        loan.connect(accounts[1]).swapLoan(symbolUsdt, comit_ONEMONTH, symbolSxp, {
+          gasLimit: 5000000,
+        }),
       ).to.emit(loan, "MarketSwapped");
     } catch {
       await expect(
-        loan
-          .connect(accounts[1])
-          .swapLoan(symbolUsdt, comit_ONEMONTH, symbolSxp, {
-            gasLimit: 5000000,
-          })
+        loan.connect(accounts[1]).swapLoan(symbolUsdt, comit_ONEMONTH, symbolSxp, {
+          gasLimit: 5000000,
+        }),
       ).to.be.revertedWith("Mathematical Error");
     }
   });
