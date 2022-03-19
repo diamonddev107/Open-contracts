@@ -756,6 +756,7 @@ library LibOpen {
 		_processNewLoan(_loanMarket,_commitment,_loanAmount,_collateralMarket,_collateralAmount);
 		
 		_updateReservesLoan(_collateralMarket,_collateralAmount, 0);
+		return loan.id;
 	}
 
 	function _processNewLoan(
